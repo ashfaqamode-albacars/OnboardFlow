@@ -58,8 +58,8 @@ export default function AdminCourses() {
   const loadData = async () => {
     try {
       const [coursesRes, templatesRes] = await Promise.all([
-        list('courses', { select: '*' }),
-        list('document_templates', { select: '*' })
+        list('course', { select: '*' }),
+        list('document_template', { select: '*' })
       ]);
       setCourses(coursesRes.data ?? []);
       setDocumentTemplates(templatesRes.data ?? []);
@@ -118,9 +118,9 @@ export default function AdminCourses() {
       };
 
       if (selectedCourse) {
-        await update('courses', selectedCourse.id, data);
+        await update('course', selectedCourse.id, data);
       } else {
-        await create('courses', data);
+        await create('course', data);
       }
 
       await loadData();
@@ -135,7 +135,7 @@ export default function AdminCourses() {
   const handleDelete = async (course) => {
     if (!confirm('Are you sure you want to delete this course?')) return;
     try {
-      await remove('courses', course.id);
+      await remove('course', course.id);
       await loadData();
     } catch (e) {
       console.error(e);

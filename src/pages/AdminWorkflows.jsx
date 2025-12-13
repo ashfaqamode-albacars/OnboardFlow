@@ -55,10 +55,10 @@ export default function AdminWorkflows() {
   const loadData = async () => {
     try {
       const [workflowsRes, formsRes, docTypesRes, coursesRes] = await Promise.all([
-        list('workflows'),
-        list('form_templates', { select: '*' }),
-        list('document_types', { select: '*' }),
-        list('courses', { select: '*' })
+        list('workflow'),
+        list('form_template', { select: '*' }),
+        list('document_type', { select: '*' }),
+        list('course', { select: '*' })
       ]);
       setWorkflows(workflowsRes.data ?? []);
       setFormTemplates(formsRes.data ?? []);

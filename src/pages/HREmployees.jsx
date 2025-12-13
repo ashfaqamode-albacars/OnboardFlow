@@ -62,8 +62,8 @@ export default function HREmployees() {
 
       const [empData, workflowData, formData] = await Promise.all([
         Entities.Employee.filter(employeeFilter),
-        Entities.Workflow.filter({ is_active: true }),
-        Entities.FormTemplate.filter({ is_active: true })
+        Entities.Workflow.filter({ is_archived: false }),
+        Entities.FormTemplate.filter({ is_archived: false })
       ]);
 
       setEmployees(empData);
