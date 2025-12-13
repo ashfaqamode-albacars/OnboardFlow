@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { createPageUrl } from '../utils';
 import { 
   Home, FileText, Package, CheckSquare, Settings, Users, 
@@ -34,12 +34,12 @@ export default function Layout({ children, currentPageName }) {
 
   const loadUser = async () => {
     try {
-      const userData = await base44.auth.me();
+      const userData = await Entities.User.me();
       setUser(userData);
       
       // Check if user is an employee
       if (userData.role === 'user') {
-        const employees = await base44.entities.Employee.filter({ user_email: userData.email });
+        const employees = await Entities.Employee.filter({ user_email: userData.email });
         if (employees.length > 0) {
           setEmployee(employees[0]);
         }
@@ -47,8 +47,8 @@ export default function Layout({ children, currentPageName }) {
       
       // Get pending tasks count for HR/Admin
       if (userData.role === 'admin') {
-        const pendingDocs = await base44.entities.Document.filter({ status: 'pending' });
-        const pendingEquip = await base44.entities.EquipmentRequest.filter({ status: 'pending' });
+        const pendingDocs = await Entities.Document.filter({ status: 'pending' });
+        const pendingEquip = await Entities.EquipmentRequest.filter({ status: 'pending' });
         setPendingCount(pendingDocs.length + pendingEquip.length);
       }
     } catch (e) {
@@ -61,7 +61,7 @@ export default function Layout({ children, currentPageName }) {
   const isEmployee = !!employee;
 
   const handleLogout = () => {
-    base44.auth.logout();
+    Entities.User.logout();
   };
 
   // Employee navigation

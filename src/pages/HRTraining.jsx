@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,16 +40,16 @@ export default function HRTraining() {
 
   const loadData = async () => {
     try {
-      const userData = await base44.auth.me();
+      const userData = await Entities.User.me();
       setUser(userData);
 
       const isAdmin = userData.role === 'admin';
       const employeeFilter = isAdmin ? {} : { assigned_hr: userData.email };
 
       const [coursesData, empData, assignmentsData] = await Promise.all([
-        base44.entities.Course.filter({ is_active: true }),
-        base44.entities.Employee.filter(employeeFilter),
-        base44.entities.CourseAssignment.list()
+        Entities.Course.filter({ is_active: true }),
+        Entities.Employee.filter(employeeFilter),
+        Entities.CourseAssignment.list()
       ]);
 
       setCourses(coursesData);
@@ -70,7 +70,7 @@ export default function HRTraining() {
     setSubmitting(true);
     try {
       const assignmentPromises = selectedEmployees.map(empId => 
-        base44.entities.CourseAssignment.create({
+        Entities.CourseAssignment.create({
           employee_id: empId,
           course_id: selectedCourse.id,
           course_title: selectedCourse.title,

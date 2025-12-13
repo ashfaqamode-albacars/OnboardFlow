@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,15 +37,15 @@ export default function HREquipment() {
 
   const loadData = async () => {
     try {
-      const userData = await base44.auth.me();
+      const userData = await Entities.User.me();
       setUser(userData);
 
       const isAdmin = userData.role === 'admin';
       const employeeFilter = isAdmin ? {} : { assigned_hr: userData.email };
 
       const [empData, requestsData] = await Promise.all([
-        base44.entities.Employee.filter(employeeFilter),
-        base44.entities.EquipmentRequest.list()
+        Entities.Employee.filter(employeeFilter),
+        Entities.EquipmentRequest.list()
       ]);
 
       setEmployees(empData);
@@ -62,7 +62,7 @@ export default function HREquipment() {
   const handleApprove = async (request) => {
     setProcessing(true);
     try {
-      await base44.entities.EquipmentRequest.update(request.id, {
+      await Entities.EquipmentRequest.update(request.id, {
         status: 'approved',
         reviewed_by: user.email,
         reviewed_date: new Date().toISOString()
@@ -78,7 +78,7 @@ export default function HREquipment() {
   const handleMarkDelivered = async (request) => {
     setProcessing(true);
     try {
-      await base44.entities.EquipmentRequest.update(request.id, {
+      await Entities.EquipmentRequest.update(request.id, {
         status: 'delivered'
       });
       await loadData();
@@ -94,7 +94,7 @@ export default function HREquipment() {
     
     setProcessing(true);
     try {
-      await base44.entities.EquipmentRequest.update(selectedRequest.id, {
+      await Entities.EquipmentRequest.update(selectedRequest.id, {
         status: 'rejected',
         reviewed_by: user.email,
         reviewed_date: new Date().toISOString(),
@@ -272,7 +272,7 @@ function EquipmentRequestCard({ request, employees, index, onApprove, onReject, 
 
   const loadItems = async () => {
     try {
-      const itemsData = await base44.entities.EquipmentRequestItem.filter({ request_id: request.id });
+      const itemsData = await Entities.EquipmentRequestItem.filter({ request_id: request.id });
       setItems(itemsData);
     } catch (e) {
       console.error(e);

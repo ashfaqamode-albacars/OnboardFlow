@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { list, create, update, remove } from '@/api/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,16 +54,16 @@ export default function AdminWorkflows() {
 
   const loadData = async () => {
     try {
-      const [workflowsData, formsData, docTypesData, coursesData] = await Promise.all([
-        base44.entities.Workflow.list(),
-        base44.entities.FormTemplate.filter({ is_active: true }),
-        base44.entities.DocumentType.filter({ is_active: true }),
-        base44.entities.Course.filter({ is_active: true })
+      const [workflowsRes, formsRes, docTypesRes, coursesRes] = await Promise.all([
+        list('workflows'),
+        list('form_templates', { select: '*' }),
+        list('document_types', { select: '*' }),
+        list('courses', { select: '*' })
       ]);
-      setWorkflows(workflowsData);
-      setFormTemplates(formsData);
-      setDocumentTypes(docTypesData);
-      setCourses(coursesData);
+      setWorkflows(workflowsRes.data ?? []);
+      setFormTemplates(formsRes.data ?? []);
+      setDocumentTypes(docTypesRes.data ?? []);
+      setCourses(coursesRes.data ?? []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -112,16 +112,16 @@ export default function AdminWorkflows() {
         tasks: formData.tasks.map((task, index) => ({
           ...task,
           order: index,
-          form_id: task.form_id ? Number(task.form_id) : null,
-          document_type_id: task.document_type_id ? Number(task.document_type_id) : null,
-          course_id: task.course_id ? Number(task.course_id) : null
+          form_id: task.form_id || null,
+          document_type_id: task.document_type_id || null,
+          course_id: task.course_id || null
         }))
       };
 
       if (selectedWorkflow) {
-        await base44.entities.Workflow.update(selectedWorkflow.id, data);
+        await update('workflows', selectedWorkflow.id, data);
       } else {
-        await base44.entities.Workflow.create(data);
+        await create('workflows', data);
       }
 
       await loadData();
@@ -136,7 +136,7 @@ export default function AdminWorkflows() {
   const handleDelete = async (workflow) => {
     if (!confirm('Are you sure you want to delete this workflow?')) return;
     try {
-      await base44.entities.Workflow.delete(workflow.id);
+      await remove('workflows', workflow.id);
       await loadData();
     } catch (e) {
       console.error(e);

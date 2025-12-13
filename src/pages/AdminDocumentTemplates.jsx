@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
+import * as Integrations from '@/api/integrations';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,7 +52,7 @@ export default function AdminDocumentTemplates() {
 
   const loadData = async () => {
     try {
-      const templatesData = await base44.entities.DocumentTemplate.list();
+      const templatesData = await Entities.DocumentTemplate.list();
       setTemplates(templatesData);
     } catch (e) {
       console.error(e);
@@ -90,9 +91,9 @@ export default function AdminDocumentTemplates() {
     setSubmitting(true);
     try {
       if (selectedTemplate) {
-        await base44.entities.DocumentTemplate.update(selectedTemplate.id, formData);
+        await Entities.DocumentTemplate.update(selectedTemplate.id, formData);
       } else {
-        await base44.entities.DocumentTemplate.create(formData);
+        await Entities.DocumentTemplate.create(formData);
       }
 
       await loadData();
@@ -107,7 +108,7 @@ export default function AdminDocumentTemplates() {
   const handleDelete = async (template) => {
     if (!confirm('Are you sure you want to delete this template?')) return;
     try {
-      await base44.entities.DocumentTemplate.delete(template.id);
+      await Entities.DocumentTemplate.delete(template.id);
       await loadData();
     } catch (e) {
       console.error(e);
@@ -120,7 +121,7 @@ export default function AdminDocumentTemplates() {
 
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await Integrations.UploadFile({ file });
       setFormData({ ...formData, template_file_url: file_url });
     } catch (e) {
       console.error(e);

@@ -1,0 +1,16 @@
+npm install @supabase/supabase-js
+Add to .env (root):
+VITE_SUPABASE_URL=<VITE_SUPABASE_URL>
+VITE_SUPABASE_ANON_KEY=<VITE_SUPABASE_ANON_KEY>
+(For server only: SUPABASE_SERVICE_ROLE_KEY set on server environment)
+
+Restart dev server:
+npm run dev
+
+Verify flows:
+- list('workflows') => expect data array
+- create('workflows', payload) => expect row with UUID string id
+- update('workflows', '<uuid>', payload)
+- remove('workflows', '<uuid>')
+
+If you see 401/403: check RLS policies and JWT claims.

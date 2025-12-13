@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
+import * as Integrations from '@/api/integrations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,8 +53,8 @@ export default function AdminSettings() {
   const loadData = async () => {
     try {
       const [docTypesData, equipmentData] = await Promise.all([
-        base44.entities.DocumentType.list(),
-        base44.entities.Equipment.list()
+        Entities.DocumentType.list(),
+        Entities.Equipment.list()
       ]);
       setDocumentTypes(docTypesData);
       setEquipment(equipmentData);
@@ -87,9 +88,9 @@ export default function AdminSettings() {
     setSubmitting(true);
     try {
       if (selectedDocType) {
-        await base44.entities.DocumentType.update(selectedDocType.id, docTypeForm);
+        await Entities.DocumentType.update(selectedDocType.id, docTypeForm);
       } else {
-        await base44.entities.DocumentType.create(docTypeForm);
+        await Entities.DocumentType.create(docTypeForm);
       }
       await loadData();
       setDocTypeOpen(false);
@@ -103,7 +104,7 @@ export default function AdminSettings() {
   const handleDeleteDocType = async (docType) => {
     if (!confirm('Are you sure you want to delete this document type?')) return;
     try {
-      await base44.entities.DocumentType.delete(docType.id);
+      await Entities.DocumentType.delete(docType.id);
       await loadData();
     } catch (e) {
       console.error(e);
@@ -134,9 +135,9 @@ export default function AdminSettings() {
     setSubmitting(true);
     try {
       if (selectedEquipment) {
-        await base44.entities.Equipment.update(selectedEquipment.id, equipmentForm);
+        await Entities.Equipment.update(selectedEquipment.id, equipmentForm);
       } else {
-        await base44.entities.Equipment.create(equipmentForm);
+        await Entities.Equipment.create(equipmentForm);
       }
       await loadData();
       setEquipmentOpen(false);
@@ -150,7 +151,7 @@ export default function AdminSettings() {
   const handleDeleteEquipment = async (item) => {
     if (!confirm('Are you sure you want to delete this equipment?')) return;
     try {
-      await base44.entities.Equipment.delete(item.id);
+      await Entities.Equipment.delete(item.id);
       await loadData();
     } catch (e) {
       console.error(e);
@@ -162,7 +163,7 @@ export default function AdminSettings() {
     if (!file) return;
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await Integrations.UploadFile({ file });
       setEquipmentForm({ ...equipmentForm, image_url: file_url });
     } catch (e) {
       console.error(e);

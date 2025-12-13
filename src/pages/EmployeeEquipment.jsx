@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,16 +50,16 @@ export default function EmployeeEquipment() {
 
   const loadData = async () => {
     try {
-      const user = await base44.auth.me();
-      const employees = await base44.entities.Employee.filter({ user_email: user.email });
+      const user = await Entities.User.me();
+      const employees = await Entities.Employee.filter({ user_email: user.email });
       
       if (employees.length > 0) {
         const emp = employees[0];
         setEmployee(emp);
         
         const [equipData, requestsData] = await Promise.all([
-          base44.entities.Equipment.filter({ is_available: true }),
-          base44.entities.EquipmentRequest.filter({ employee_id: emp.id })
+          Entities.Equipment.filter({ is_available: true }),
+          Entities.EquipmentRequest.filter({ employee_id: emp.id })
         ]);
         
         setEquipment(equipData);
@@ -104,7 +104,7 @@ export default function EmployeeEquipment() {
     
     setSubmitting(true);
     try {
-      const request = await base44.entities.EquipmentRequest.create({
+      const request = await Entities.EquipmentRequest.create({
         employee_id: employee.id,
         task_id: taskId,
         overall_notes: overallNotes,
@@ -113,7 +113,7 @@ export default function EmployeeEquipment() {
 
       await Promise.all(
         cart.map(item => 
-          base44.entities.EquipmentRequestItem.create({
+          Entities.EquipmentRequestItem.create({
             request_id: request.id,
             ...item
           })
@@ -122,9 +122,9 @@ export default function EmployeeEquipment() {
 
       // If this was from a task, mark task as complete
       if (taskId) {
-        const tasks = await base44.entities.Task.filter({ id: taskId });
+        const tasks = await Entities.Task.filter({ id: taskId });
         if (tasks.length > 0) {
-          await base44.entities.Task.update(taskId, {
+          await Entities.Task.update(taskId, {
             status: 'completed',
             completed_date: new Date().toISOString(),
             related_id: request.id
@@ -132,7 +132,7 @@ export default function EmployeeEquipment() {
 
           // Create HR approval task
           const task = tasks[0];
-          await base44.entities.Task.create({
+          await Entities.Task.create({
             employee_id: employee.id,
             title: `Approve Equipment Request - ${employee.full_name}`,
             description: `Review and approve equipment request with ${cart.length} item(s)`,
@@ -407,7 +407,7 @@ function EquipmentRequestCard({ request, index }) {
 
   const loadItems = async () => {
     try {
-      const itemsData = await base44.entities.EquipmentRequestItem.filter({ request_id: request.id });
+      const itemsData = await Entities.EquipmentRequestItem.filter({ request_id: request.id });
       setItems(itemsData);
     } catch (e) {
       console.error(e);

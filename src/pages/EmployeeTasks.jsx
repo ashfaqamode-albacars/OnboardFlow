@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
+import * as Integrations from '@/api/integrations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -62,13 +63,13 @@ export default function EmployeeTasks() {
 
   const loadData = async () => {
     try {
-      const user = await base44.auth.me();
-      const employees = await base44.entities.Employee.filter({ user_email: user.email });
+      const user = await Entities.User.me();
+      const employees = await Entities.Employee.filter({ user_email: user.email });
       
       if (employees.length > 0) {
         const emp = employees[0];
         setEmployee(emp);
-        const tasksData = await base44.entities.Task.filter({ 
+        const tasksData = await Entities.Task.filter({ 
           employee_id: emp.id, 
           assigned_role: 'employee' 
         });
@@ -90,7 +91,7 @@ export default function EmployeeTasks() {
     if (task.type === 'form' && task.form_id) {
       setLoadingForm(true);
       try {
-        const forms = await base44.entities.FormTemplate.list();
+        const forms = await Entities.FormTemplate.list();
         const matchingForm = forms.find(f => f.id === task.form_id);
         if (matchingForm) {
           setFormTemplate(matchingForm);
@@ -110,7 +111,7 @@ export default function EmployeeTasks() {
     if (!selectedTask) return;
     setSubmitting(true);
     try {
-      await base44.entities.Task.update(selectedTask.id, {
+      await Entities.Task.update(selectedTask.id, {
         status: 'completed',
         completed_date: new Date().toISOString(),
         form_data: formData
@@ -118,7 +119,7 @@ export default function EmployeeTasks() {
       
       // Update employee personal info if it's a personal info form
       if (formTemplate?.form_type === 'personal_info') {
-        await base44.entities.Employee.update(employee.id, {
+        await Entities.Employee.update(employee.id, {
           personal_info: { ...employee.personal_info, ...formData }
         });
       }
@@ -138,7 +139,7 @@ export default function EmployeeTasks() {
     if (!selectedTask) return;
     setSubmitting(true);
     try {
-      await base44.entities.Task.update(selectedTask.id, {
+      await Entities.Task.update(selectedTask.id, {
         status: 'completed',
         completed_date: new Date().toISOString()
       });
@@ -156,12 +157,12 @@ export default function EmployeeTasks() {
     
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: uploadFile });
+      const { file_url } = await Integrations.UploadFile({ file: uploadFile });
       
-      const docTypes = await base44.entities.DocumentType.filter({ id: selectedTask.document_type_id });
+      const docTypes = await Entities.DocumentType.filter({ id: selectedTask.document_type_id });
       const docTypeName = docTypes.length > 0 ? docTypes[0].name : 'Document';
       
-      const doc = await base44.entities.Document.create({
+      const doc = await Entities.Document.create({
         employee_id: employee.id,
         document_type_id: selectedTask.document_type_id,
         document_type_name: docTypeName,
@@ -170,7 +171,7 @@ export default function EmployeeTasks() {
         submitted_date: new Date().toISOString()
       });
 
-      await base44.entities.Task.update(selectedTask.id, {
+      await Entities.Task.update(selectedTask.id, {
         status: 'completed',
         completed_date: new Date().toISOString(),
         related_id: doc.id

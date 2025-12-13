@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
+import * as Integrations from '@/api/integrations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,16 +37,16 @@ export default function EmployeeDocuments() {
 
   const loadData = async () => {
     try {
-      const user = await base44.auth.me();
-      const employees = await base44.entities.Employee.filter({ user_email: user.email });
+      const user = await Entities.User.me();
+      const employees = await Entities.Employee.filter({ user_email: user.email });
       
       if (employees.length > 0) {
         const emp = employees[0];
         setEmployee(emp);
         
         const [docsData, typesData] = await Promise.all([
-          base44.entities.Document.filter({ employee_id: emp.id }),
-          base44.entities.DocumentType.filter({ is_active: true })
+          Entities.Document.filter({ employee_id: emp.id }),
+          Entities.DocumentType.filter({ is_active: true })
         ]);
         
         setDocuments(docsData);
@@ -63,11 +64,11 @@ export default function EmployeeDocuments() {
     
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await Integrations.UploadFile({ file });
       
       const docType = documentTypes.find(t => t.id === selectedType);
       
-      await base44.entities.Document.create({
+      await Entities.Document.create({
         employee_id: employee.id,
         document_type_id: selectedType,
         document_type_name: docType?.name || 'Unknown',

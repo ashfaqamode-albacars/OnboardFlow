@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import ReactPlayer from 'react-player';
@@ -75,7 +75,7 @@ export default function CourseViewer() {
         return;
       }
 
-      const assignments = await base44.entities.CourseAssignment.filter({ id: assignmentId });
+      const assignments = await Entities.CourseAssignment.filter({ id: assignmentId });
       if (assignments.length === 0) {
         navigate(createPageUrl('EmployeeTraining'));
         return;
@@ -84,18 +84,18 @@ export default function CourseViewer() {
       const assignmentData = assignments[0];
       setAssignment(assignmentData);
 
-      const courses = await base44.entities.Course.filter({ id: assignmentData.course_id });
+      const courses = await Entities.Course.filter({ id: assignmentData.course_id });
       if (courses.length > 0) {
         setCourse(courses[0]);
       }
 
-      const progress = await base44.entities.ModuleProgress.filter({
+      const progress = await Entities.ModuleProgress.filter({
         assignment_id: assignmentId
       });
       setModuleProgress(progress);
 
       if (assignmentData.status === 'not_started') {
-        await base44.entities.CourseAssignment.update(assignmentId, {
+        await Entities.CourseAssignment.update(assignmentId, {
           status: 'in_progress'
         });
       }
@@ -143,14 +143,14 @@ export default function CourseViewer() {
     if (currentProgress?.completed) return;
 
     try {
-      if (currentProgress) {
-        await base44.entities.ModuleProgress.update(currentProgress.id, {
+        if (currentProgress) {
+        await Entities.ModuleProgress.update(currentProgress.id, {
           completed: true,
           progress_percentage: 100,
           completed_date: new Date().toISOString()
         });
       } else {
-        await base44.entities.ModuleProgress.create({
+        await Entities.ModuleProgress.create({
           employee_id: assignment.employee_id,
           course_id: assignment.course_id,
           assignment_id: assignment.id,
@@ -186,8 +186,8 @@ export default function CourseViewer() {
     setQuizSubmitted(true);
 
     try {
-      if (currentProgress) {
-        await base44.entities.ModuleProgress.update(currentProgress.id, {
+        if (currentProgress) {
+        await Entities.ModuleProgress.update(currentProgress.id, {
           quiz_score: score,
           quiz_passed: passed,
           quiz_attempts: (currentProgress.quiz_attempts || 0) + 1,
@@ -195,7 +195,7 @@ export default function CourseViewer() {
           completed_date: passed ? new Date().toISOString() : null
         });
       } else {
-        await base44.entities.ModuleProgress.create({
+        await Entities.ModuleProgress.create({
           employee_id: assignment.employee_id,
           course_id: assignment.course_id,
           assignment_id: assignment.id,
@@ -239,7 +239,7 @@ export default function CourseViewer() {
       }
     }
 
-    await base44.entities.CourseAssignment.update(assignment.id, updates);
+    await Entities.CourseAssignment.update(assignment.id, updates);
   };
 
   const canAccessModule = (index) => {

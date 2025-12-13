@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,16 +39,16 @@ export default function EmployeeTraining() {
 
   const loadData = async () => {
     try {
-      const user = await base44.auth.me();
-      const employees = await base44.entities.Employee.filter({ user_email: user.email });
+      const user = await Entities.User.me();
+      const employees = await Entities.Employee.filter({ user_email: user.email });
       
       if (employees.length > 0) {
         const emp = employees[0];
         setEmployee(emp);
         
         const [assignmentsData, coursesData] = await Promise.all([
-          base44.entities.CourseAssignment.filter({ employee_id: emp.id }),
-          base44.entities.Course.filter({ is_active: true })
+          Entities.CourseAssignment.filter({ employee_id: emp.id }),
+          Entities.Course.filter({ is_active: true })
         ]);
         
         setAssignments(assignmentsData);
@@ -65,7 +65,7 @@ export default function EmployeeTraining() {
     if (!employee) return;
     setEnrolling(course.id);
     try {
-      await base44.entities.CourseAssignment.create({
+      await Entities.CourseAssignment.create({
         employee_id: employee.id,
         course_id: course.id,
         course_title: course.title,

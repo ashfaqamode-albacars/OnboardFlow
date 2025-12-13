@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
+import * as Integrations from '@/api/integrations';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,16 +54,16 @@ export default function HREmployees() {
 
   const loadData = async () => {
     try {
-      const userData = await base44.auth.me();
+      const userData = await Entities.User.me();
       setUser(userData);
 
       const isAdmin = userData.role === 'admin';
       const employeeFilter = isAdmin ? {} : { assigned_hr: userData.email };
 
       const [empData, workflowData, formData] = await Promise.all([
-        base44.entities.Employee.filter(employeeFilter),
-        base44.entities.Workflow.filter({ is_active: true }),
-        base44.entities.FormTemplate.filter({ is_active: true })
+        Entities.Employee.filter(employeeFilter),
+        Entities.Workflow.filter({ is_active: true }),
+        Entities.FormTemplate.filter({ is_active: true })
       ]);
 
       setEmployees(empData);
@@ -81,7 +82,7 @@ export default function HREmployees() {
     setSubmitting(true);
     try {
       // Create employee
-      const employee = await base44.entities.Employee.create({
+      const employee = await Entities.Employee.create({
         ...formData,
         assigned_hr: user.email,
         user_email: formData.email,
@@ -90,7 +91,7 @@ export default function HREmployees() {
       });
 
       // Send invitation email
-      await base44.integrations.Core.SendEmail({
+      await Integrations.SendEmail({
         to: formData.email,
         subject: 'Welcome to OnboardHub - Your Onboarding Portal',
         body: `
@@ -116,9 +117,9 @@ export default function HREmployees() {
 
             // If it's a training task, create course assignment
             if (task.type === 'training' && task.course_id) {
-              const courses = await base44.entities.Course.filter({ id: Number(task.course_id) });
+              const courses = await Entities.Course.filter({ id: Number(task.course_id) });
               if (courses.length > 0) {
-                await base44.entities.CourseAssignment.create({
+                await Entities.CourseAssignment.create({
                   employee_id: employee.id,
                   course_id: Number(task.course_id),
                   course_title: courses[0].title,
@@ -131,7 +132,7 @@ export default function HREmployees() {
               }
             }
 
-            await base44.entities.Task.create({
+            await Entities.Task.create({
               employee_id: employee.id,
               workflow_task_id: task.id,
               title: task.title,

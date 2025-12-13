@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,15 +36,15 @@ export default function HRDocuments() {
 
   const loadData = async () => {
     try {
-      const userData = await base44.auth.me();
+      const userData = await Entities.User.me();
       setUser(userData);
 
       const isAdmin = userData.role === 'admin';
       const employeeFilter = isAdmin ? {} : { assigned_hr: userData.email };
 
       const [empData, docsData] = await Promise.all([
-        base44.entities.Employee.filter(employeeFilter),
-        base44.entities.Document.list()
+        Entities.Employee.filter(employeeFilter),
+        Entities.Document.list()
       ]);
 
       setEmployees(empData);
@@ -61,7 +61,7 @@ export default function HRDocuments() {
   const handleApprove = async (doc) => {
     setProcessing(true);
     try {
-      await base44.entities.Document.update(doc.id, {
+      await Entities.Document.update(doc.id, {
         status: 'approved',
         reviewed_by: user.email,
         reviewed_date: new Date().toISOString()
@@ -80,7 +80,7 @@ export default function HRDocuments() {
     
     setProcessing(true);
     try {
-      await base44.entities.Document.update(selectedDoc.id, {
+      await Entities.Document.update(selectedDoc.id, {
         status: 'rejected',
         reviewed_by: user.email,
         reviewed_date: new Date().toISOString(),

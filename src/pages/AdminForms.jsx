@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +60,7 @@ export default function AdminForms() {
 
   const loadData = async () => {
     try {
-      const formsData = await base44.entities.FormTemplate.list();
+      const formsData = await Entities.FormTemplate.list();
       setForms(formsData);
     } catch (e) {
       console.error(e);
@@ -107,9 +107,9 @@ export default function AdminForms() {
       };
 
       if (selectedForm) {
-        await base44.entities.FormTemplate.update(selectedForm.id, data);
+        await Entities.FormTemplate.update(selectedForm.id, data);
       } else {
-        await base44.entities.FormTemplate.create(data);
+        await Entities.FormTemplate.create(data);
       }
 
       await loadData();
@@ -124,7 +124,7 @@ export default function AdminForms() {
   const handleDelete = async (form) => {
     if (!confirm('Are you sure you want to delete this form?')) return;
     try {
-      await base44.entities.FormTemplate.delete(form.id);
+      await Entities.FormTemplate.delete(form.id);
       await loadData();
     } catch (e) {
       console.error(e);

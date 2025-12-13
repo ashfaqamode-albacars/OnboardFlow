@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,18 +31,18 @@ export default function EmployeeDashboard() {
 
   const loadData = async () => {
     try {
-      const userData = await base44.auth.me();
+      const userData = await Entities.User.me();
       setUser(userData);
 
-      const employees = await base44.entities.Employee.filter({ user_email: userData.email });
+      const employees = await Entities.Employee.filter({ user_email: userData.email });
       if (employees.length > 0) {
         const emp = employees[0];
         setEmployee(emp);
 
         const [tasksData, docsData, equipData] = await Promise.all([
-          base44.entities.Task.filter({ employee_id: emp.id, assigned_role: 'employee' }),
-          base44.entities.Document.filter({ employee_id: emp.id }),
-          base44.entities.EquipmentRequest.filter({ employee_id: emp.id })
+          Entities.Task.filter({ employee_id: emp.id, assigned_role: 'employee' }),
+          Entities.Document.filter({ employee_id: emp.id }),
+          Entities.EquipmentRequest.filter({ employee_id: emp.id })
         ]);
 
         setTasks(tasksData);

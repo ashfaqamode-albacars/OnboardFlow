@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,19 +29,19 @@ export default function HRDashboard() {
 
   const loadData = async () => {
     try {
-      const userData = await base44.auth.me();
+      const userData = await Entities.User.me();
       setUser(userData);
 
       const isAdmin = userData.role === 'admin';
-      
+
       // For admins, show all. For HR, show assigned employees only
       const employeeFilter = isAdmin ? {} : { assigned_hr: userData.email };
-      
+
       const [empData, docsData, equipData, tasksData] = await Promise.all([
-        base44.entities.Employee.filter(employeeFilter),
-        base44.entities.Document.list(),
-        base44.entities.EquipmentRequest.list(),
-        base44.entities.Task.filter({ assigned_role: 'hr' })
+        Entities.Employee.filter(employeeFilter),
+        Entities.Document.list(),
+        Entities.EquipmentRequest.list(),
+        Entities.Task.filter({ assigned_role: 'hr' })
       ]);
 
       setEmployees(empData);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { list, create, update, remove, storageUpload } from '@/api/supabaseClient';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,12 +57,12 @@ export default function AdminCourses() {
 
   const loadData = async () => {
     try {
-      const [coursesData, templatesData] = await Promise.all([
-        base44.entities.Course.list(),
-        base44.entities.DocumentTemplate.filter({ is_active: true })
+      const [coursesRes, templatesRes] = await Promise.all([
+        list('courses', { select: '*' }),
+        list('document_templates', { select: '*' })
       ]);
-      setCourses(coursesData);
-      setDocumentTemplates(templatesData);
+      setCourses(coursesRes.data ?? []);
+      setDocumentTemplates(templatesRes.data ?? []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -118,9 +118,9 @@ export default function AdminCourses() {
       };
 
       if (selectedCourse) {
-        await base44.entities.Course.update(selectedCourse.id, data);
+        await update('courses', selectedCourse.id, data);
       } else {
-        await base44.entities.Course.create(data);
+        await create('courses', data);
       }
 
       await loadData();
@@ -135,7 +135,7 @@ export default function AdminCourses() {
   const handleDelete = async (course) => {
     if (!confirm('Are you sure you want to delete this course?')) return;
     try {
-      await base44.entities.Course.delete(course.id);
+      await remove('courses', course.id);
       await loadData();
     } catch (e) {
       console.error(e);
@@ -203,9 +203,15 @@ export default function AdminCourses() {
     setUploading(true);
     
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      // Upload to Supabase storage (bucket must be created in your project).
+      // Change 'course-media' to your bucket name.
+      const uploadPath = `courses/${Date.now()}-${file.name}`;
+      const { data: uploadData, error: uploadError } = await storageUpload('course-media', uploadPath, file);
+      if (uploadError) throw uploadError;
+      // Construct public URL (if you use public bucket) or use signed URL separately.
+      const publicUrl = `${import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '')}/storage/v1/object/public/course-media/${uploadPath}`;
       setUploadProgress({ ...uploadProgress, [uploadKey]: 'complete' });
-      updateModule(moduleIndex, type === 'video' ? 'video_url' : 'reading_url', file_url);
+      updateModule(moduleIndex, type === 'video' ? 'video_url' : 'reading_url', publicUrl);
       
       setTimeout(() => {
         setUploadProgress(prev => {
@@ -432,8 +438,11 @@ export default function AdminCourses() {
                         if (!file) return;
                         setUploading(true);
                         try {
-                          const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                          setFormData({ ...formData, certificate_file_url: file_url, certificate_template_id: '' });
+                          const uploadPath = `certificates/${Date.now()}-${file.name}`;
+                          const { data: uploadData, error: uploadError } = await storageUpload('course-media', uploadPath, file);
+                          if (uploadError) throw uploadError;
+                          const publicUrl = `${import.meta.env.VITE_SUPABASE_URL.replace('.supabase.co', '')}/storage/v1/object/public/course-media/${uploadPath}`;
+                          setFormData({ ...formData, certificate_file_url: publicUrl, certificate_template_id: '' });
                         } catch (err) {
                           console.error(err);
                         } finally {

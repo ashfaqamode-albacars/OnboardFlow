@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import * as Entities from '@/api/entities';
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,15 +28,15 @@ export default function HRTasks() {
 
   const loadData = async () => {
     try {
-      const userData = await base44.auth.me();
+      const userData = await Entities.User.me();
       setUser(userData);
 
       const isAdmin = userData.role === 'admin';
       const employeeFilter = isAdmin ? {} : { assigned_hr: userData.email };
 
       const [empData, tasksData] = await Promise.all([
-        base44.entities.Employee.filter(employeeFilter),
-        base44.entities.Task.list()
+        Entities.Employee.filter(employeeFilter),
+        Entities.Task.list()
       ]);
 
       setEmployees(empData);
