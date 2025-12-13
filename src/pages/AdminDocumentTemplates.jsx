@@ -53,7 +53,7 @@ export default function AdminDocumentTemplates() {
   const loadData = async () => {
     try {
       const templatesData = await Entities.DocumentTemplate.list();
-      setTemplates(templatesData);
+      setTemplates((templatesData || []).map(t => ({ ...t, is_active: t.is_archived !== true })));
     } catch (e) {
       console.error(e);
     } finally {
@@ -68,7 +68,7 @@ export default function AdminDocumentTemplates() {
       description: template.description || '',
       template_file_url: template.template_file_url || '',
       placeholders: template.placeholders || [],
-      is_active: template.is_active !== false
+      is_active: template.is_archived !== true
     });
     setEditOpen(true);
   };
@@ -90,10 +90,11 @@ export default function AdminDocumentTemplates() {
     
     setSubmitting(true);
     try {
+      const payload = { ...formData, is_archived: formData.is_active === false };
       if (selectedTemplate) {
-        await Entities.DocumentTemplate.update(selectedTemplate.id, formData);
+        await Entities.DocumentTemplate.update(selectedTemplate.id, payload);
       } else {
-        await Entities.DocumentTemplate.create(formData);
+        await Entities.DocumentTemplate.create(payload);
       }
 
       await loadData();

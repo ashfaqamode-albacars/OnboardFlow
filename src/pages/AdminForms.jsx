@@ -61,7 +61,7 @@ export default function AdminForms() {
   const loadData = async () => {
     try {
       const formsData = await Entities.FormTemplate.list();
-      setForms(formsData);
+      setForms((formsData || []).map(f => ({ ...f, is_active: f.is_archived !== true })));
     } catch (e) {
       console.error(e);
     } finally {
@@ -75,7 +75,7 @@ export default function AdminForms() {
       name: form.name,
       description: form.description || '',
       form_type: form.form_type || 'custom',
-      is_active: form.is_active !== false,
+      is_active: form.is_archived !== true,
       fields: form.fields || []
     });
     setEditOpen(true);
@@ -106,10 +106,11 @@ export default function AdminForms() {
         }))
       };
 
+      const payload = { ...data, is_archived: data.is_active === false };
       if (selectedForm) {
-        await Entities.FormTemplate.update(selectedForm.id, data);
+        await Entities.FormTemplate.update(selectedForm.id, payload);
       } else {
-        await Entities.FormTemplate.create(data);
+        await Entities.FormTemplate.create(payload);
       }
 
       await loadData();

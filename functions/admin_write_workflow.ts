@@ -24,7 +24,7 @@ serve(async (req: Request) => {
     if (role !== 'admin') return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
 
     const body = await req.json();
-    const { data, error } = await supabaseAdmin.from('workflows').insert(body).select().single();
+    const { data, error } = await supabaseAdmin.from('workflow').insert(body).select().single();
     if (error) return new Response(JSON.stringify({ error }), { status: 400 });
     return new Response(JSON.stringify({ data }), { status: 201 });
   } catch (err) {

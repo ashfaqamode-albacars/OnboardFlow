@@ -61,8 +61,10 @@ export default function AdminCourses() {
         list('course', { select: '*' }),
         list('document_template', { select: '*' })
       ]);
-      setCourses(coursesRes.data ?? []);
-      setDocumentTemplates(templatesRes.data ?? []);
+      const rawCourses = coursesRes.data ?? [];
+      const rawTemplates = templatesRes.data ?? [];
+      setCourses(rawCourses.map(c => ({ ...c, is_active: c.is_archived !== true })));
+      setDocumentTemplates(rawTemplates.map(t => ({ ...t, is_active: t.is_archived !== true })));
     } catch (e) {
       console.error(e);
     } finally {
@@ -114,7 +116,9 @@ export default function AdminCourses() {
         modules: formData.modules.map((mod, index) => ({
           ...mod,
           order: index
-        }))
+        })),
+        // map UI `is_active` to DB `is_archived`
+        is_archived: formData.is_active === false
       };
 
       if (selectedCourse) {

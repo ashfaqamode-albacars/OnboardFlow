@@ -60,10 +60,14 @@ export default function AdminWorkflows() {
         list('document_type', { select: '*' }),
         list('course', { select: '*' })
       ]);
-      setWorkflows(workflowsRes.data ?? []);
-      setFormTemplates(formsRes.data ?? []);
-      setDocumentTypes(docTypesRes.data ?? []);
-      setCourses(coursesRes.data ?? []);
+      const rawWorkflows = workflowsRes.data ?? [];
+      const rawForms = formsRes.data ?? [];
+      const rawDocTypes = docTypesRes.data ?? [];
+      const rawCourses = coursesRes.data ?? [];
+      setWorkflows(rawWorkflows.map(w => ({ ...w, is_active: w.is_archived !== true })));
+      setFormTemplates(rawForms.map(f => ({ ...f, is_active: f.is_archived !== true })));
+      setDocumentTypes(rawDocTypes);
+      setCourses(rawCourses.map(c => ({ ...c, is_active: c.is_archived !== true })));
     } catch (e) {
       console.error(e);
     } finally {
@@ -76,7 +80,7 @@ export default function AdminWorkflows() {
     setFormData({
       name: workflow.name,
       description: workflow.description || '',
-      is_active: workflow.is_active !== false,
+      is_active: workflow.is_archived !== true,
       is_default: workflow.is_default || false,
       tasks: (workflow.tasks || []).map(task => ({
         ...task,
@@ -115,13 +119,14 @@ export default function AdminWorkflows() {
           form_id: task.form_id || null,
           document_type_id: task.document_type_id || null,
           course_id: task.course_id || null
-        }))
+        })),
+        is_archived: formData.is_active === false
       };
 
       if (selectedWorkflow) {
-        await update('workflows', selectedWorkflow.id, data);
+        await update('workflow', selectedWorkflow.id, data);
       } else {
-        await create('workflows', data);
+        await create('workflow', data);
       }
 
       await loadData();
@@ -136,7 +141,7 @@ export default function AdminWorkflows() {
   const handleDelete = async (workflow) => {
     if (!confirm('Are you sure you want to delete this workflow?')) return;
     try {
-      await remove('workflows', workflow.id);
+      await remove('workflow', workflow.id);
       await loadData();
     } catch (e) {
       console.error(e);
