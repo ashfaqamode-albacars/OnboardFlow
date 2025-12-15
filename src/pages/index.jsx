@@ -33,6 +33,8 @@ import CourseViewer from "./CourseViewer";
 import HRTraining from "./HRTraining";
 
 import AdminCourses from "./AdminCourses";
+import Login from "./Login";
+import Signup from "./Signup";
 
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 
@@ -71,6 +73,8 @@ const PAGES = {
     HRTraining: HRTraining,
     
     AdminCourses: AdminCourses,
+        Login: Login,
+        Signup: Signup,
     
 }
 
@@ -132,6 +136,8 @@ function PagesContent() {
                 <Route path="/HRTraining" element={<HRTraining />} />
                 
                 <Route path="/AdminCourses" element={<AdminCourses />} />
+                    <Route path="/Login" element={<Login />} />
+                    <Route path="/Signup" element={<Signup />} />
                 
             </Routes>
         </Layout>
