@@ -141,7 +141,6 @@ export default function HREmployees() {
               status: 'pending',
               due_date: dueDate?.toISOString().split('T')[0],
               assigned_to: formData.email,
-              assigned_role: 'employee',
               form_id: task.form_id,
               document_type_id: task.document_type_id,
               related_id: task.course_id

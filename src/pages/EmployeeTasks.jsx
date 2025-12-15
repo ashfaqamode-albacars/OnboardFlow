@@ -69,10 +69,7 @@ export default function EmployeeTasks() {
       if (employees.length > 0) {
         const emp = employees[0];
         setEmployee(emp);
-        const tasksData = await Entities.Task.filter({ 
-          employee_id: emp.id, 
-          assigned_role: 'employee' 
-        });
+        const tasksData = await Entities.Task.filter({ employee_id: emp.id });
         setTasks(tasksData);
       }
     } catch (e) {

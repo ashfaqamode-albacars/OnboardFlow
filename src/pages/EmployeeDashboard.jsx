@@ -40,7 +40,7 @@ export default function EmployeeDashboard() {
         setEmployee(emp);
 
         const [tasksData, docsData, equipData] = await Promise.all([
-          Entities.Task.filter({ employee_id: emp.id, assigned_role: 'employee' }),
+          Entities.Task.filter({ employee_id: emp.id }),
           Entities.Document.filter({ employee_id: emp.id }),
           Entities.EquipmentRequest.filter({ employee_id: emp.id })
         ]);

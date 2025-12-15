@@ -139,7 +139,6 @@ export default function EmployeeEquipment() {
             type: 'approval',
             status: 'pending',
             assigned_to: employee.assigned_hr,
-            assigned_role: 'hr',
             related_id: request.id
           });
         }

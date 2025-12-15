@@ -37,20 +37,21 @@ export default function HRDashboard() {
       // For admins, show all. For HR, show assigned employees only
       const employeeFilter = isAdmin ? {} : { assigned_hr: userData.email };
 
-      const [empData, docsData, equipData, tasksData] = await Promise.all([
-        Entities.Employee.filter(employeeFilter),
+      const empData = await Entities.Employee.filter(employeeFilter);
+      const [docsData, equipData, tasksData] = await Promise.all([
         Entities.Document.list(),
         Entities.EquipmentRequest.list(),
-        Entities.Task.filter({ assigned_role: 'hr' })
+        Entities.Task.list()
       ]);
 
       setEmployees(empData);
-      
-      // Filter documents and equipment for assigned employees
+
+      // Filter documents, equipment and tasks for assigned employees (if not admin)
       const employeeIds = empData.map(e => e.id);
       setDocuments(isAdmin ? docsData : docsData.filter(d => employeeIds.includes(d.employee_id)));
       setEquipmentRequests(isAdmin ? equipData : equipData.filter(e => employeeIds.includes(e.employee_id)));
-      setTasks(tasksData);
+      // tasks: if DB has `assigned_role` use it, otherwise match by employee_id
+      setTasks(isAdmin ? tasksData : tasksData.filter(t => (t.assigned_role ? t.assigned_role === 'hr' : employeeIds.includes(t.employee_id))));
     } catch (e) {
       console.error(e);
     } finally {
