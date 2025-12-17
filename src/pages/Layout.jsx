@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import * as Entities from '@/api/entities';
 import { createPageUrl } from '../utils';
@@ -21,7 +22,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export default function Layout({ children, currentPageName }) {
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
+  const [localUser, setLocalUser] = useState(null);
   const [employee, setEmployee] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -29,39 +31,44 @@ export default function Layout({ children, currentPageName }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadUser();
-  }, []);
-
-  const loadUser = async () => {
-    try {
-      const userData = await Entities.User.me();
-      setUser(userData);
-      
-      // Check if user is an employee
-      if (userData.role === 'user') {
-        const employees = await Entities.Employee.filter({ user_email: userData.email });
-        if (employees.length > 0) {
-          setEmployee(employees[0]);
+    const loadUser = async () => {
+      try {
+        // user is provided by AuthContext; copy locally for reactivity
+        setLocalUser(user);
+        if (!user) {
+          setEmployee(null);
+          setPendingCount(0);
+          return;
         }
-      }
-      
-      // Get pending tasks count for HR/Admin
-      if (userData.role === 'admin') {
-        const pendingDocs = await Entities.Document.filter({ status: 'pending' });
-        const pendingEquip = await Entities.EquipmentRequest.filter({ status: 'pending' });
-        setPendingCount(pendingDocs.length + pendingEquip.length);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
-  const isAdmin = user?.role === 'admin';
-  const isHR = isAdmin || user?.role === 'admin'; // Could extend with HR role
+        // Check if user is an employee
+        if (user.role === 'user') {
+          const employees = await Entities.Employee.filter({ user_email: user.email });
+          if (employees.length > 0) {
+            setEmployee(employees[0]);
+          }
+        }
+
+        // Get pending tasks count for HR/Admin
+        if (user.role === 'admin') {
+          const pendingDocs = await Entities.Document.filter({ status: 'pending' });
+          const pendingEquip = await Entities.EquipmentRequest.filter({ status: 'pending' });
+          setPendingCount(pendingDocs.length + pendingEquip.length);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    loadUser();
+  }, [user]);
+
+  const isAdmin = (user || localUser)?.role === 'admin';
+  const isHR = isAdmin || (user || localUser)?.role === 'admin'; // placeholder for HR role logic
   const isEmployee = !!employee;
 
   const handleLogout = () => {
-    Entities.User.logout();
+    // prefer context logout
+    try { logout(); } catch (e) { Entities.User.logout(); }
   };
 
   // Employee navigation
@@ -229,17 +236,17 @@ export default function Layout({ children, currentPageName }) {
                 )}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => navigate(createPageUrl('Profile'))}>
-                <User className="h-4 w-4 mr-2" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate(createPageUrl('Profile'))}>
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </aside>

@@ -24,14 +24,18 @@ export default function Signup() {
     }
 
     try {
+      console.log('[auth] signup start', { email });
       const { data, error } = await signUp(email, password);
       if (error) {
+        console.error('[auth] signup error', error);
         setMessage(error.message || 'Signup failed');
       } else {
+        console.log('[auth] signup success', data);
         setMessage('Check your email for confirmation (if enabled).');
         setTimeout(() => navigate('/Login'), 1200);
       }
     } catch (err) {
+      console.error('[auth] signup exception', err);
       setMessage(String(err));
     } finally {
       setLoading(false);

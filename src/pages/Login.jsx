@@ -5,22 +5,30 @@ import { Label } from "@/components/ui/label";
 import { signIn } from '@/api/supabaseClient';
 import { supabase } from '@/api/supabaseClient';
 import { LogIn } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const navigate = useNavigate();
 
   const handleGoogle = async () => {
     try {
+      console.log('[auth] starting Google OAuth redirect');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: window.location.origin }
       });
-      if (error) setMessage(error.message || 'OAuth error');
+      if (error) {
+        console.error('[auth] google oauth error', error);
+        setMessage(error.message || 'OAuth error');
+      } else {
+        console.log('[auth] google oauth initiated');
+      }
     } catch (err) {
+      console.error('[auth] google oauth exception', err);
       setMessage(String(err));
     }
   };
@@ -30,13 +38,18 @@ export default function Login() {
     setLoading(true);
     setMessage(null);
     try {
+      console.log('[auth] email sign-in start', { email });
       const { data, error } = await signIn(email, password);
       if (error) {
+        console.error('[auth] email sign-in error', error);
         setMessage(error.message || 'Login failed');
       } else {
+        console.log('[auth] email sign-in success', data);
         setMessage('Logged in');
+        navigate('/');
       }
     } catch (err) {
+      console.error('[auth] email sign-in exception', err);
       setMessage(String(err));
     } finally {
       setLoading(false);
